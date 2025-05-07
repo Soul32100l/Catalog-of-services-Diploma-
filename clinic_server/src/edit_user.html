@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Редактирование услуги</title>
+
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js" integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+" crossorigin="anonymous"></script>
+
+    <script type="module" src="/js/main.js" defer></script>
+		<script type="module" src="/js/add_user.js" defer></script>
+		<script type="module" src="/js/institutions.js" defer></script>
+		<script type="module" src="/js/edit_user.js" defer></script>
+</head>
+<body>
+		<!-- Шапка с использованием Bootstrap 5 -->
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="#">Система управления</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav me-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="./login.html">Авторизация</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="./users.html">Пользователи</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="./index.html">Мед учреждения</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="./documents.html">Документы</a>
+						</li>
+					</ul>
+					<div class="d-flex">
+						<span id="auth-status" class="badge bg-secondary me-2">⏳ Проверка авторизации</span>
+						<span class="badge bg-success me-2" id="db-status">⏳ Проверка подключения к БД...</span>
+						<span class="api-status" id="api-status">⏳ Проверка статуса API...</span>
+						<a id="settings-button" class="btn btn-warning ms-3" href="./settings.html">⚙️</a>
+						<button id="logout-button" class="btn btn-danger ms-3">Выйти</button>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+
+		<h1>Редактирование пользователя</h1>
+		<form id="edit-form">
+			<input type="hidden" id="user-id">
+			<label>Пользовательское имя:</label>
+			<input type="text" id="username"><br>
+			<label>Фамилия:</label>
+			<input type="text" id="last-name"><br>
+			<label>Имя:</label>
+			<input type="text" id="first-name"><br>
+			<label>Отчество:</label>
+			<input type="text" id="middle-name"><br>
+			<label>Телефон:</label>
+			<input type="text" id="phone"><br>
+			<label>Электронная почта:</label>
+			<input type="email" id="email"><br>
+			<label>Статус:</label>
+			<input type="text" id="status"><br>
+			<button type="submit">Сохранить</button>
+		</form>
+
+	<script type="module">
+		import { checkAuth } from "/js/auth.js";
+
+		// Проверяем авторизацию при загрузке страницы
+		checkAuth();
+	</script>
+</body>
+</html>

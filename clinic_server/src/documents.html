@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Документы</title>
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js" integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+" crossorigin="anonymous"></script>
+
+	<script type="module" src="/js/main.js" defer></script>
+	<script type="module" src="/js/doc.js" defer></script>
+
+
+</head>
+<body>
+			<!-- Шапка с использованием Bootstrap 5 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Система управления</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="./login.html">Авторизация</a>
+        </li>
+				<li class="nav-item">
+          <a class="nav-link" href="./users.html">Пользователи</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="./index.html">Мед учреждения</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="./documents.html">Документы</a>
+        </li>
+      </ul>
+      <div class="d-flex">
+		<span id="auth-status" class="badge bg-secondary me-2">⏳ Проверка авторизации</span>
+		<span class="badge bg-success me-2" id="db-status">⏳ Проверка подключения к БД...</span>
+		<span class="api-status" id="api-status">⏳ Проверка статуса API...</span>
+		<a id="settings-button" class="btn btn-warning ms-3" href="./settings.html">⚙️</a>
+		<button id="logout-button" class="btn btn-danger ms-3">Выйти</button>
+	</div>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+	<h1>Таблица документов</h1>
+	<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addDocumentModal">Добавить документ</button>
+	<table class="table table-striped">
+			<thead>
+					<tr>
+							<th>ID</th>
+							<th>Название</th>
+							<th>Действия</th>
+					</tr>
+			</thead>
+			<tbody id="documents-table-body">
+					<!-- Данные будут загружены сюда -->
+			</tbody>
+	</table>
+</div>
+
+<!-- Модальное окно для добавления документа -->
+<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+			<div class="modal-content">
+					<div class="modal-header">
+							<h5 class="modal-title" id="addDocumentModalLabel">Добавить документ</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+					</div>
+					<div class="modal-body">
+							<form id="add-document-form">
+									<div class="mb-3">
+											<label for="document-name" class="form-label">Название документа</label>
+											<input type="text" id="document-name" class="form-control" required />
+									</div>
+									<button type="submit" class="btn btn-primary">Добавить</button>
+							</form>
+					</div>
+			</div>
+	</div>
+</div>
+
+<!-- Модальное окно для редактирования документа -->
+<div class="modal fade" id="editDocumentModal" tabindex="-1" aria-labelledby="editDocumentModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+			<div class="modal-content">
+					<div class="modal-header">
+							<h5 class="modal-title" id="editDocumentModalLabel">Редактировать документ</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+					</div>
+					<div class="modal-body">
+							<form id="edit-document-form">
+									<input type="hidden" id="edit-document-id" />
+									<div class="mb-3">
+											<label for="edit-document-name" class="form-label">Название документа</label>
+											<input type="text" id="edit-document-name" class="form-control" required />
+									</div>
+									<button type="submit" class="btn btn-primary">Сохранить изменения</button>
+							</form>
+					</div>
+			</div>
+	</div>
+</div>
+
+
+
+
+
+
+<script type="module">
+	import { checkAuth } from "/js/auth.js";
+
+	// Проверяем авторизацию при загрузке страницы
+	checkAuth();
+</script>
+</body>
+</html>

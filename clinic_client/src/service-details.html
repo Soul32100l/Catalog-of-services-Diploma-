@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Детали услуги</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container my-4">
+    <div id="service-info" class="card shadow-sm p-4 mb-4"></div>
+    <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get("id");
+      const infoContainer = document.getElementById("service-info");
+
+      if (!id) {
+        infoContainer.innerHTML = "<p class='text-danger'>ID услуги не указан.</p>";
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://127.0.0.1:3030/service/${id}`);
+        const service = await response.json();
+
+        if (Array.isArray(service)) {
+          // Если ответ — массив (например, [id, name, ...]), разбираем
+          const [
+            , // Пропускаем ID
+            name,
+            imageUrl,
+            description,
+            requiredDocuments,
+            institutionId,
+            availableDates,
+            occupiedDates
+          ] = service;
+
+          infoContainer.innerHTML = `
+            <h2 class="mb-3">${name}</h2>
+            ${imageUrl ? `<img src="${imageUrl}" alt="${name}" class="img-fluid mb-3 rounded" style="max-height: 300px;">` : ""}
+            <p><strong>Описание:</strong> ${description || "—"}</p>
+            <p><strong>Необходимые документы:</strong> ${requiredDocuments || "—"}</p>
+            <p><strong>Доступные даты:</strong> ${availableDates || "—"}</p>
+            <p><strong>Занятые даты:</strong> ${occupiedDates || "—"}</p>
+          `;
+        } else if (service && typeof service === 'object') {
+          // Если ответ — объект с полями (принимаем snake_case)
+          const {
+            name,
+            image_url,  // Используем snake_case
+            description,
+            required_documents,  // Используем snake_case
+            institution_id,  // Используем snake_case
+            available_dates,  // Используем snake_case
+            occupied_dates  // Используем snake_case
+          } = service;
+
+          infoContainer.innerHTML = `
+            <h2 class="mb-3">${name}</h2>
+            ${image_url ? `<img src="${image_url}" alt="${name}" class="img-fluid mb-3 rounded" style="max-height: 300px;">` : ""}
+            <p><strong>Описание:</strong> ${description || "—"}</p>
+            <p><strong>Необходимые документы:</strong> ${required_documents || "—"}</p>
+            <p><strong>Доступные даты:</strong> ${available_dates || "—"}</p>
+            <p><strong>Занятые даты:</strong> ${occupied_dates || "—"}</p>
+          `;
+        } else {
+          infoContainer.innerHTML = "<p class='text-muted'>Услуга не найдена.</p>";
+        }
+      } catch (error) {
+        console.error("Ошибка при загрузке услуги:", error);
+        infoContainer.innerHTML = "<p class='text-danger'>Ошибка при загрузке данных.</p>";
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
