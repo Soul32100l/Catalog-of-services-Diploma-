@@ -89,14 +89,18 @@ async function addCatalogItem() {
 		console.log("service-available-dates:", availableDates);
     const occupiedDates = document.getElementById("service-occupied-dates").value;
 		console.log("service-occupied-dates:", occupiedDates);
+    const requiredDocuments = document.getElementById("service-required-documents").value;
+        console.log("service-required-documents:", requiredDocuments);
+        
 
 		console.log("Вызов команды add_catalog_item с данными:", {
 			institution_id: parseInt(institutionId, 10),
 			name,
 			description: description || null,
-			image_url: imageUrl || null,
-			available_dates: availableDates || null,
-			occupied_dates: availableDates || null,
+			imageUrl: imageUrl || null,
+			availableDates: availableDates || null,
+			occupiedDates: availableDates || null,
+            requiredDocuments: requiredDocuments || null,
 	});
 
     try {
@@ -104,9 +108,10 @@ async function addCatalogItem() {
 						institutionId: parseInt(institutionId, 10),
             name,
             description: description || null,
-            image_url: imageUrl || null,
-            available_dates: availableDates || null,
-            occupied_dates: occupiedDates || null,
+            imageUrl: imageUrl || null,
+            availableDates: availableDates || null,
+            occupiedDates: occupiedDates || null,
+            requiredDocuments: requiredDocuments || null,
         });
 
         if (result) {

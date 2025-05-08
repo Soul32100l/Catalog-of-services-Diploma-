@@ -4,6 +4,10 @@ use tokio::runtime::Runtime;
 use std::fs;
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
+use tauri::AppHandle;
+use tauri::Manager;
+
+
 
 fn main() {
     // Создаём асинхронный рантайм вручную
@@ -76,16 +80,20 @@ struct Config {
     devtools: Option<bool>,
 }
 
-fn get_config_path() -> PathBuf {
-    let mut path = std::env::current_dir().unwrap();
-    path.push("config");
-    path.push("config.js");
-    path
+
+fn get_config_path(app: &AppHandle) -> PathBuf {
+    let path = app
+        .path()
+        .config_dir()
+        .expect("Не удалось получить config_dir");
+    
+    path.join("med-uslugi").join("config.js")
 }
 
+
 #[tauri::command]
-fn read_config() -> Result<Config, String> {
-    let path = get_config_path();
+fn read_config(app: AppHandle) -> Result<Config, String> {
+    let path = get_config_path(&app);
     if path.exists() {
         let content = fs::read_to_string(path).map_err(|e| e.to_string())?;
         serde_json::from_str(&content).map_err(|e| e.to_string())
@@ -100,8 +108,8 @@ fn read_config() -> Result<Config, String> {
 
 
 #[tauri::command]
-fn write_config(config: Config) -> Result<(), String> {
-    let path = get_config_path();
+fn write_config(config: Config, app: AppHandle) -> Result<(), String> {
+    let path = get_config_path(&app);
 
     // Создаём директорию, если она отсутствует
     if let Some(parent) = path.parent() {
@@ -128,9 +136,10 @@ fn write_config(config: Config) -> Result<(), String> {
 		Ok(())
 }
 
+//Включение/отключение консоли разработчика
 #[tauri::command]
-fn toggle_devtools(enable: bool) -> Result<(), String> {
-    let config_path = get_config_path();
+fn toggle_devtools(enable: bool, app: AppHandle) -> Result<(), String> {
+    let config_path = get_config_path(&app);
     let mut config: Config = serde_json::from_str(&std::fs::read_to_string(&config_path).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())?;
 
@@ -255,10 +264,17 @@ fn delete_medical_institution(id: i32) -> Result<bool, String> {
 
 
 
+#[derive(Serialize)]
+struct Institution {
+    id: i32,
+    name: String,
+    address: String,
+}
+
 #[tauri::command]
-fn get_institution_by_id(id: i32) -> Result<(i32, String, String), String> {
+fn get_institution_by_id(id: i32) -> Result<Institution, String> {
     match db::get_institution_by_id(id) {
-        Ok(institution) => Ok(institution),
+        Ok((id, name, address)) => Ok(Institution { id, name, address }),
         Err(e) => {
             eprintln!("Ошибка при получении учреждения: {}", e);
             Err(e.to_string())
@@ -334,6 +350,7 @@ fn add_catalog_item(
     image_url: Option<String>,
     available_dates: Option<String>,
     occupied_dates: Option<String>,
+    required_documents: Option<String>,
 ) -> Result<bool, String> {
 		eprintln!("Получен institution_id: {}", institution_id);
 		eprintln!("Получено имя: {}", name);
@@ -341,6 +358,7 @@ fn add_catalog_item(
 		eprintln!("Получен URL изображения: {:?}", image_url);
 		eprintln!("Получены доступные даты: {:?}", available_dates);
 		eprintln!("Получены занятые даты: {:?}", occupied_dates);
+        eprintln!("Получены обязательные документы: {:?}", required_documents);
 		
     match db::add_catalog_item(
         institution_id,
@@ -349,6 +367,7 @@ fn add_catalog_item(
         image_url.as_deref(),
         available_dates.as_deref(),
         occupied_dates.as_deref(),
+        required_documents.as_deref(),
     ) {
         Ok(_) => Ok(true),
         Err(e) => {

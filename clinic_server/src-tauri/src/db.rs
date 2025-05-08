@@ -1,7 +1,7 @@
 use mysql::*;
 use mysql::prelude::*;
 use bcrypt::{hash, verify}; // Для работы с хэшами паролей
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 
 
 // подключение к базе данных MySQL
@@ -227,11 +227,12 @@ pub fn add_catalog_item(
 	image_url: Option<&str>,
 	available_dates: Option<&str>,
 	occupied_dates: Option<&str>,
+	required_documents: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
 	let mut conn = connect_to_db()?;
 	conn.exec_drop(
-			"INSERT INTO service_list (institution_id, name, description, image_url, available_dates, occupied_dates)
-			 VALUES (:institution_id, :name, :description, :image_url, :available_dates, :occupied_dates)",
+			"INSERT INTO service_list (institution_id, name, description, image_url, available_dates, occupied_dates, required_documents)
+			 VALUES (:institution_id, :name, :description, :image_url, :available_dates, :occupied_dates, :required_documents)",
 			params! {
 					"institution_id" => institution_id,
 					"name" => name,
@@ -239,8 +240,18 @@ pub fn add_catalog_item(
 					"image_url" => image_url.unwrap_or(""),
 					"available_dates" => available_dates.unwrap_or(""),
 					"occupied_dates" => occupied_dates.unwrap_or(""),
+					"required_documents" => required_documents.unwrap_or(""),
 			},
 	)?;
+	eprintln!("Вставка в БД с параметрами:");
+eprintln!("institution_id: {}", institution_id);
+eprintln!("name: {}", name);
+eprintln!("description: {}", description.unwrap_or(""));
+eprintln!("image_url: {}", image_url.unwrap_or(""));
+eprintln!("available_dates: {}", available_dates.unwrap_or(""));
+eprintln!("occupied_dates: {}", occupied_dates.unwrap_or(""));
+eprintln!("required_documents: {}", required_documents.unwrap_or(""));
+
 	Ok(())
 }
 

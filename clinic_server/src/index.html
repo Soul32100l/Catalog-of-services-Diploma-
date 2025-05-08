@@ -12,7 +12,9 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js" integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+" crossorigin="anonymous"></script>
 
     <script type="module" src="/js/main.js" defer></script>
+    <script type="module" src="/js/auth.js" defer></script>
 		<script type="module" src="/js/institutions.js" defer></script>
+    
   </head>
 
   <body>
@@ -41,7 +43,7 @@
       <div class="d-flex">
         <span id="auth-status" class="badge bg-secondary me-2">⏳ Проверка авторизации</span>
         <span class="badge bg-success me-2" id="db-status">⏳ Проверка подключения к БД...</span>
-        <span class="api-status" id="api-status">⏳ Проверка статуса API...</span>
+        <span class="api-status bg-success" id="api-status">⏳ Проверка статуса API...</span>
         <a id="settings-button" class="btn btn-warning ms-3" href="./settings.html">⚙️</a>
         <button id="logout-button" class="btn btn-danger ms-3">Выйти</button>
       </div>
@@ -81,6 +83,44 @@
     </div>
   </div>
 </div>
+
+<!-- Модальное окно редактирования учреждения -->
+<div class="modal fade" id="editInstitutionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="edit-institution-form">
+        <div class="modal-header">
+          <h5 class="modal-title">Редактировать учреждение</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="edit-id" />
+          <div class="mb-3">
+            <label class="form-label">Название</label>
+            <input type="text" class="form-control" id="edit-name" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Адрес</label>
+            <input type="text" class="form-control" id="edit-address" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Контакты</label>
+            <input type="text" class="form-control" id="edit-phone" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Веб-сайт</label>
+            <input type="text" class="form-control" id="edit-website" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 	
 		<div class="container mt-5">
 			<h1>Список медицинских учреждений</h1>
@@ -103,7 +143,6 @@
 
 		<script type="module">
       import { checkAuth } from "/js/auth.js";
-
       // Проверяем авторизацию при загрузке страницы
       checkAuth();
     </script>

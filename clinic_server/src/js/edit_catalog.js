@@ -18,21 +18,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("service-image").value = imageUrl;
     document.getElementById("service-available-dates").value = availableDates;
     document.getElementById("service-occupied-dates").value = occupiedDates;
+    document.getElementById("service-documents").value = documents;
   } catch (error) {
     console.error("Ошибка при загрузке данных услуги:", error);
   }
 
   // Сохранение изменений
-  document.getElementById("edit-form").addEventListener("submit", async (e) => {
+  document.getElementById("edit-service").addEventListener("submit", async (e) => {
     e.preventDefault();
     try {
       const result = await invoke("edit_catalog_item", {
         id: parseInt(document.getElementById("service-id").value, 10),
         name: document.getElementById("service-name").value,
         description: document.getElementById("service-description").value,
-        image_url: document.getElementById("service-image").value,
-        available_dates: document.getElementById("service-available-dates").value,
-        occupied_dates: document.getElementById("service-occupied-dates").value,
+        imageUrl: document.getElementById("service-image").value,
+        availableDates: document.getElementById("service-available-dates").value,
+        occupiedDates: document.getElementById("service-occupied-dates").value,
+        documents: document.getElementById("service-documents").value,
       });
       if (result) {
         alert("Услуга успешно обновлена!");

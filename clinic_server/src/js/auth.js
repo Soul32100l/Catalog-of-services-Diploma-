@@ -1,4 +1,7 @@
 const { invoke } = window.__TAURI__.core;
+function redirectToLogin() {
+  window.location.replace("login.html"); // безопаснее — без возврата назад
+}
 
 // Функция для проверки авторизации
 async function checkAuth() {
@@ -50,14 +53,24 @@ function updateAuthStatus(isAuthenticated) {
 export { checkAuth };
 
 // filepath: c:\Users\ikaru\Desktop\med-uslugi(diplom)\clinic_server\src\js\auth.js
-function clearAuthData() {
-  invoke("write_config", { config: { username: null, password: null, devtools: false } })
-    .then(() => {
-      console.log("Данные авторизации очищены");
-    })
-    .catch((error) => {
-      console.error("Ошибка при очистке данных авторизации:", error);
+async function clearAuthData() {
+  try {
+    await invoke("write_config", {
+      config: { username: null, password: null, devtools: false },
     });
+    console.log("Данные авторизации очищены");
+    window.location.href = "/login.html";
+  } catch (error) {
+    console.error("Ошибка при очистке данных авторизации:", error);
+  }
 }
 
-export { clearAuthData };
+
+document.addEventListener("DOMContentLoaded", () => {
+  const logoutBtn = document.getElementById("logout-button");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      clearAuthData(); // теперь сам перенаправляет
+    });
+  }
+});

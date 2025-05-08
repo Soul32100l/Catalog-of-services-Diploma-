@@ -46,63 +46,6 @@ window.addEventListener("DOMContentLoaded", () => {
 	checkApiStatus(); // Вызываем функцию проверки статуса
 });
 
-const { saveAuthData, loadAuthData, clearAuthData } = require("./auth");
 
-async function checkAuth() {
-  const authData = loadAuthData();
 
-  if (authData) {
-    const { username, token } = authData;
 
-    // Проверяем данные с сервером
-    const isValid = await invoke("login", { username, password: token });
-    if (isValid) {
-      console.log("✅ Пользователь авторизован");
-      return true;
-    } else {
-      console.log("❌ Неверные данные, требуется повторная авторизация");
-      clearAuthData();
-      return false;
-    }
-  }
-
-  console.log("❌ Нет данных для авторизации");
-  return false;
-}
-
-async function login(username, password) {
-  const isValid = await invoke("login", { username, password });
-  if (isValid) {
-    saveAuthData(username, password);
-    console.log("✅ Успешный вход");
-    return true;
-  } else {
-    console.log("❌ Неверные данные");
-    return false;
-  }
-}
-
-// Проверяем авторизацию при запуске
-window.addEventListener("DOMContentLoaded", async () => {
-  const isAuthenticated = await checkAuth();
-  if (!isAuthenticated) {
-    // Перенаправляем на страницу авторизации
-    window.location.href = "/login.html";
-  }
-});
-
-// filepath: c:\Users\ikaru\Desktop\med-uslugi(diplom)\clinic_server\src\js\main.js
-document.addEventListener("DOMContentLoaded", () => {
-  const logoutButton = document.getElementById("logout-button"); // Найти кнопку "Выйти"
-  if (logoutButton) {
-    logoutButton.addEventListener("click", async () => {
-      try {
-        await invoke("write_config", { config: { username: null, password: null, devtools: false } });
-        console.log("Данные авторизации очищены");
-        window.location.href = "/login.html"; // Перенаправить на страницу входа
-      } catch (error) {
-        console.error("Ошибка при выходе из аккаунта:", error);
-      }
-    });
-  }
-});
