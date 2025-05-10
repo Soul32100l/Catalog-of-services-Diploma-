@@ -1,7 +1,8 @@
 use mysql::*;
-use mysql::prelude::*;
 use bcrypt::{hash, verify}; // Для работы с хэшами паролей
 use serde::Serialize;
+use mysql::{prelude::*, Params, Value};
+use std::collections::HashMap;
 
 
 // подключение к базе данных MySQL
@@ -153,13 +154,13 @@ pub fn get_institution_by_id(
 
 pub fn get_catalog_by_institution_id(
 	institution_id: i32,
-) -> Result<Vec<(i32, String, String )>, Box<dyn std::error::Error>> {
+) -> Result<Vec<(i32, String, String, Option<String> )>, Box<dyn std::error::Error>> {
 	let mut conn = connect_to_db()?;
 	let result = conn.exec_map(
-			"SELECT id, name, description FROM service_list WHERE institution_id = :institution_id",
+			"SELECT id, name, description, image_url FROM service_list WHERE institution_id = :institution_id",
 			params! { "institution_id" => institution_id },
-			|(id, name, description)| {
-					(id, name, description)
+			|(id, name, description, image_url)| {
+					(id, name, description, image_url)
 			},
 	)?;
 	Ok(result)
@@ -186,28 +187,58 @@ pub fn get_catalog_item_details(
 	Ok((service.0, service.1, service.2, service.3, service.4, service.5, documents))
 }
 
+
+
 pub fn edit_catalog_item(
-	id: i32,
-	name: &str,
-	description: Option<&str>,
-	image_url: Option<&str>,
-	available_dates: Option<&str>,
-	occupied_dates: Option<&str>,
+    id: i32,
+    name: Option<&str>,
+    description: Option<&str>,
+    image_url: Option<&str>,
+    available_dates: Option<&str>,
+    occupied_dates: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-	let mut conn = connect_to_db()?;
-	conn.exec_drop(
-			"UPDATE service_list SET name = :name, description = :description, image_url = :image_url, available_dates = :available_dates, occupied_dates = :occupied_dates WHERE id = :id",
-			params! {
-					"id" => id,
-					"name" => name,
-					"description" => description,
-					"image_url" => image_url,
-					"available_dates" => available_dates,
-					"occupied_dates" => occupied_dates,
-			},
-	)?;
-	Ok(())
+    let mut conn = connect_to_db()?;
+    let mut params: HashMap<Vec<u8>, Value> = HashMap::new();
+    let mut updates = Vec::new();
+
+    if let Some(v) = name {
+        updates.push("name = :name");
+        params.insert("name".into(), Value::from(v));
+    }
+    if let Some(v) = description {
+        updates.push("description = :description");
+        params.insert("description".into(), Value::from(v));
+    }
+    if let Some(v) = image_url {
+        updates.push("image_url = :image_url");
+        params.insert("image_url".into(), Value::from(v));
+    }
+    if let Some(v) = available_dates {
+        updates.push("available_dates = :available_dates");
+        params.insert("available_dates".into(), Value::from(v));
+    }
+    if let Some(v) = occupied_dates {
+        updates.push("occupied_dates = :occupied_dates");
+        params.insert("occupied_dates".into(), Value::from(v));
+    }
+
+    // Если нет полей для обновления
+    if updates.is_empty() {
+        return Ok(());
+    }
+
+    // ID обязателен
+    params.insert("id".into(), Value::from(id));
+
+    let sql = format!(
+        "UPDATE service_list SET {} WHERE id = :id",
+        updates.join(", ")
+    );
+
+    conn.exec_drop(sql, Params::Named(params))?;
+    Ok(())
 }
+
 
 pub fn delete_catalog_item(id: i32) -> Result<(), Box<dyn std::error::Error>> {
 	let mut conn = connect_to_db()?;

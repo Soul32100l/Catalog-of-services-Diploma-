@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Авторизация / Регистрация</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="header-container"></div>
+<div class="container mt-5">
+  <div class="mb-4" id="auth-switch">
+    <button id="show-login" class="btn btn-primary me-2">Авторизация</button>
+    <button id="show-register" class="btn btn-outline-secondary">Регистрация</button>
+  </div>
+
+  <div id="login-section">
+    <h2 class="mb-4">Авторизация</h2>
+    <div id="login-message" class="mb-3 text-danger"></div>
+    <form id="login-form">
+      <div class="mb-3">
+        <label for="login-username" class="form-label">Имя пользователя</label>
+        <input type="text" class="form-control" id="login-username" required>
+      </div>
+      <div class="mb-3">
+        <label for="login-password" class="form-label">Пароль</label>
+        <input type="password" class="form-control" id="login-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+  </div>
+
+  <div id="register-section" style="display:none;">
+    <h2 class="mb-4">Регистрация</h2>
+    <div id="register-message" class="mb-3 text-danger"></div>
+    <form id="register-form">
+      <div class="mb-3">
+        <label for="register-username" class="form-label">Имя пользователя</label>
+        <input type="text" class="form-control" id="register-username" required>
+      </div>
+      <div class="mb-3">
+        <label for="register-lastname" class="form-label">Фамилия</label>
+        <input type="text" class="form-control" id="register-lastname" required>
+      </div>
+      <div class="mb-3">
+        <label for="register-firstname" class="form-label">Имя</label>
+        <input type="text" class="form-control" id="register-firstname" required>
+      </div>
+      <div class="mb-3">
+        <label for="register-middlename" class="form-label">Отчество (необязательно)</label>
+        <input type="text" class="form-control" id="register-middlename">
+      </div>
+      <div class="mb-3">
+        <label for="register-phone" class="form-label">Телефон</label>
+        <input type="tel" class="form-control" id="register-phone" required>
+      </div>
+      <div class="mb-3">
+        <label for="register-email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="register-email" required>
+      </div>
+      <div class="mb-3">
+        <label for="register-password" class="form-label">Пароль</label>
+        <input type="password" class="form-control" id="register-password" required>
+      </div>
+      <button type="submit" class="btn btn-success">Зарегистрироваться</button>
+    </form>
+  </div>
+
+  <div id="user-section" style="display:none;">
+    <div class="alert alert-success mt-4" id="welcome-message"></div>
+    <button id="logout-btn" class="btn btn-danger">Выйти</button>
+  </div>
+</div>
+
+<script src="main.js"></script>
+<script>
+  // Вставка header
+  fetch('header.html').then(r => r.text()).then(html => {
+    document.getElementById('header-container').innerHTML = html;
+  });
+
+  // Сохраняем страницу, с которой пришли (если есть referrer и не auth.html)
+  if (!localStorage.getItem('from_page')) {
+    const ref = document.referrer;
+    if (ref && !ref.endsWith('auth.html')) {
+      try {
+        const url = new URL(ref);
+        localStorage.setItem('from_page', url.pathname.replace(/^.*[\\/]/, ''));
+      } catch {}
+    }
+  }
+
+  // Проверка токена при загрузке
+  async function checkTokenAndShow() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const res = await fetch('http://127.0.0.1:3030/check_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Если уже авторизован, редиректим обратно
+        const from = localStorage.getItem('from_page');
+        if (from && from !== 'auth.html') {
+          localStorage.removeItem('from_page');
+          window.location.href = from;
+          return;
+        }
+        showUserSection();
+        return;
+      } else {
+        localStorage.removeItem('token');
+      }
+    }
+    showAuthForms();
+  }
+
+  function showUserSection() {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('register-section').style.display = 'none';
+    document.getElementById('auth-switch').style.display = 'none';
+    document.getElementById('user-section').style.display = '';
+    document.getElementById('welcome-message').textContent = 'Вы успешно вошли!';
+  }
+
+  function showAuthForms() {
+    document.getElementById('login-section').style.display = '';
+    document.getElementById('register-section').style.display = 'none';
+    document.getElementById('auth-switch').style.display = '';
+    document.getElementById('user-section').style.display = 'none';
+    document.getElementById('show-login').className = 'btn btn-primary me-2';
+    document.getElementById('show-register').className = 'btn btn-outline-secondary';
+  }
+
+  document.getElementById('show-login').onclick = function() {
+    document.getElementById('login-section').style.display = '';
+    document.getElementById('register-section').style.display = 'none';
+    this.className = 'btn btn-primary me-2';
+    document.getElementById('show-register').className = 'btn btn-outline-secondary';
+  };
+  document.getElementById('show-register').onclick = function() {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('register-section').style.display = '';
+    this.className = 'btn btn-primary me-2';
+    document.getElementById('show-login').className = 'btn btn-outline-secondary me-2';
+  };
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    const res = await fetch('http://127.0.0.1:3030/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    const msgEl = document.getElementById('login-message');
+    msgEl.textContent = data.message;
+    msgEl.className = data.success ? 'text-success' : 'text-danger';
+
+    if (data.success && data.token) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('username', username);
+      // Редирект на исходную страницу
+      const from = localStorage.getItem('from_page');
+      if (from && from !== 'auth.html') {
+        localStorage.removeItem('from_page');
+        window.location.href = from;
+        return;
+      }
+      showUserSection();
+    }
+  });
+
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('register-username').value.trim();
+    const last_name = document.getElementById('register-lastname').value.trim();
+    const first_name = document.getElementById('register-firstname').value.trim();
+    const middle_name = document.getElementById('register-middlename').value.trim();
+    const phone = document.getElementById('register-phone').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value;
+    const msgEl = document.getElementById('register-message');
+    msgEl.textContent = '';
+    msgEl.className = 'mb-3 text-danger';
+
+    try {
+      const res = await fetch('http://127.0.0.1:3030/add_user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          last_name,
+          first_name,
+          middle_name: middle_name || null,
+          phone,
+          email,
+          password
+        })
+      });
+
+      if (!res.ok) {
+        msgEl.textContent = 'Ошибка сервера: ' + res.status;
+        msgEl.className = 'text-danger';
+        return;
+      }
+
+      const data = await res.json();
+      msgEl.textContent = data.message;
+      msgEl.className = data.success ? 'text-success' : 'text-danger';
+      if (data.success) {
+        // Показываем ссылку на возврат
+        const from = localStorage.getItem('from_page') || 'index.html';
+        msgEl.innerHTML += `<br><a href="${from}" class="btn btn-link mt-2">Перейти на главную</a>`;
+      }
+    } catch (err) {
+      msgEl.textContent = 'Ошибка сети или сервера. Попробуйте позже.';
+      msgEl.className = 'text-danger';
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      await fetch('http://127.0.0.1:3030/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+    } catch {}
+    localStorage.removeItem('token');
+    showAuthForms();
+  });
+
+  // Инициализация при загрузке
+  checkTokenAndShow();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

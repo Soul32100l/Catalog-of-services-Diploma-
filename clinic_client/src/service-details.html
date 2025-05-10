@@ -7,28 +7,45 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+  <div id="header-container"></div>
   <div class="container my-4">
     <div id="service-info" class="card shadow-sm p-4 mb-4"></div>
-    <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
+    <div class="mt-3">
+    </div>
+    
   </div>
 
+  <script src="main.js"></script>
   <script>
+    // Вставка header
+    fetch('header.html').then(r => r.text()).then(html => {
+      document.getElementById('header-container').innerHTML = html;
+    });
+
+    // Проверка авторизации для бронирования
+    function isUserAuthorized() {
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+      // Можно добавить дополнительную проверку токена через сервер, если нужно
+      return true;
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get("id");
       const infoContainer = document.getElementById("service-info");
-
+  
       if (!id) {
-        infoContainer.innerHTML = "<p class='text-danger'>ID услуги не указан.</p>";
+        infoContainer.innerHTML = "<p class='text-danger'>ID услуги не указан.</p><a href='index.html' class='btn btn-secondary'>Главная</a>";
         return;
       }
-
+  
       try {
         const response = await fetch(`http://127.0.0.1:3030/service/${id}`);
         const service = await response.json();
-
+  
         if (Array.isArray(service)) {
-          // Если ответ — массив (например, [id, name, ...]), разбираем
+          // Если ответ — массив
           const [
             , // Пропускаем ID
             name,
@@ -39,45 +56,164 @@
             availableDates,
             occupiedDates
           ] = service;
-
+  
           infoContainer.innerHTML = `
             <h2 class="mb-3">${name}</h2>
             ${imageUrl ? `<img src="${imageUrl}" alt="${name}" class="img-fluid mb-3 rounded" style="max-height: 300px;">` : ""}
             <p><strong>Описание:</strong> ${description || "—"}</p>
             <p><strong>Необходимые документы:</strong> ${requiredDocuments || "—"}</p>
-            <p><strong>Доступные даты:</strong> ${availableDates || "—"}</p>
-            <p><strong>Занятые даты:</strong> ${occupiedDates || "—"}</p>
+            <p><strong>Доступные даты:</strong> <span id="available-dates">${availableDates || "—"}</span></p>
+            <p><strong>Занятые даты:</strong> <span id="occupied-dates">${occupiedDates || "—"}</span></p>
+            <label for="date-select">Выберите дату:</label>
+            <select id="date-select" class="form-select mb-3"></select>
+            <button id="confirm-reserve-btn" class="btn btn-primary mt-3">Забронировать</button>
           `;
+  
+          const dateSelect = document.getElementById('date-select');
+          const confirmBtn = document.getElementById('confirm-reserve-btn');
+  
+          // Заполняем список доступных дат
+          const availableDatesList = (availableDates || "").split(';').filter(date => date.trim() !== "");
+          availableDatesList.forEach(date => {
+            const option = document.createElement('option');
+            option.value = date;
+            option.textContent = date;
+            dateSelect.appendChild(option);
+          });
+  
+          confirmBtn.addEventListener('click', async () => {
+            const dateToReserve = dateSelect.value;
+            if (!dateToReserve) {
+              alert("Пожалуйста, выберите дату.");
+              return;
+            }
+  
+            const updatedAvailableDates = availableDatesList.filter(date => date !== dateToReserve).join(';');
+            const occupiedList = (occupiedDates || "").split(';').filter(date => date.trim() !== "");
+            occupiedList.push(dateToReserve);
+            const updatedOccupiedDates = occupiedList.join(';') + ';';
+  
+            const updateResponse = await fetch('http://127.0.0.1:3030/edit_catalog', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                id: parseInt(id),
+                availableDates: updatedAvailableDates,
+                occupiedDates: updatedOccupiedDates
+              })
+            });
+  
+            if (updateResponse.ok) {
+              alert('Дата успешно забронирована!');
+              document.getElementById('available-dates').innerText = updatedAvailableDates || '—';
+              document.getElementById('occupied-dates').innerText = updatedOccupiedDates;
+              dateSelect.querySelector(`option[value="${dateToReserve}"]`).remove(); // Удалить забронированную дату из select
+            } else {
+              alert('Ошибка при бронировании даты.');
+            }
+          });
+  
+          if (availableDatesList.length === 0) {
+            alert("Нет доступных дат для бронирования.");
+          }
+  
         } else if (service && typeof service === 'object') {
           // Если ответ — объект с полями (принимаем snake_case)
           const {
             name,
-            image_url,  // Используем snake_case
+            image_url,
             description,
-            required_documents,  // Используем snake_case
-            institution_id,  // Используем snake_case
-            available_dates,  // Используем snake_case
-            occupied_dates  // Используем snake_case
+            required_documents,
+            institution_id,
+            available_dates,
+            occupied_dates
           } = service;
-
+  
           infoContainer.innerHTML = `
             <h2 class="mb-3">${name}</h2>
             ${image_url ? `<img src="${image_url}" alt="${name}" class="img-fluid mb-3 rounded" style="max-height: 300px;">` : ""}
             <p><strong>Описание:</strong> ${description || "—"}</p>
             <p><strong>Необходимые документы:</strong> ${required_documents || "—"}</p>
-            <p><strong>Доступные даты:</strong> ${available_dates || "—"}</p>
-            <p><strong>Занятые даты:</strong> ${occupied_dates || "—"}</p>
+            <p><strong>Доступные даты:</strong> <span id="available-dates">${available_dates || "—"}</span></p>
+            <p><strong>Занятые даты:</strong> <span id="occupied-dates">${occupied_dates || "—"}</span></p>
+            <label for="date-select">Выберите дату:</label>
+            <select id="date-select" class="form-select mb-3"></select>
+            <button id="confirm-reserve-btn" class="btn btn-primary mt-3">Забронировать</button>
           `;
+  
+          const dateSelect = document.getElementById('date-select');
+          const confirmBtn = document.getElementById('confirm-reserve-btn');
+  
+          // Заполняем список доступных дат
+          const availableDatesList = (available_dates || "").split(';').filter(date => date.trim() !== "");
+          availableDatesList.forEach(date => {
+            const option = document.createElement('option');
+            option.value = date;
+            option.textContent = date;
+            dateSelect.appendChild(option);
+          });
+  
+          confirmBtn.addEventListener('click', async () => {
+            const dateToReserve = dateSelect.value;
+            if (!dateToReserve) {
+              alert("Пожалуйста, выберите дату.");
+              return;
+            }
+  
+            const updatedAvailableDates = availableDatesList.filter(date => date !== dateToReserve).join(';');
+            const occupiedList = (occupied_dates || "").split(';').filter(date => date.trim() !== "");
+            occupiedList.push(dateToReserve);
+            const updatedOccupiedDates = occupiedList.join(';') + ';';
+  
+            const updateResponse = await fetch('http://127.0.0.1:3030/edit_catalog', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                id: parseInt(id),
+                available_dates: updatedAvailableDates,
+                occupied_dates: updatedOccupiedDates
+              })
+            });
+  
+            if (updateResponse.ok) {
+              alert('Дата успешно забронирована!');
+              document.getElementById('available-dates').innerText = updatedAvailableDates || '—';
+              document.getElementById('occupied-dates').innerText = updatedOccupiedDates;
+              dateSelect.querySelector(`option[value="${dateToReserve}"]`).remove(); // Удалить забронированную дату из select
+            } else {
+              alert('Ошибка при бронировании даты.');
+            }
+          });
+  
         } else {
-          infoContainer.innerHTML = "<p class='text-muted'>Услуга не найдена.</p>";
+          infoContainer.innerHTML = "<p class='text-muted'>Услуга не найдена.</p><a href='index.html' class='btn btn-secondary'>Главная</a>";
         }
+  
+        setTimeout(() => {
+          const confirmBtn = document.getElementById('confirm-reserve-btn');
+          if (confirmBtn && !isUserAuthorized()) {
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add('btn-secondary');
+            confirmBtn.classList.remove('btn-primary');
+            confirmBtn.textContent = 'Войдите для бронирования';
+            confirmBtn.onclick = () => {
+              localStorage.setItem('from_page', location.pathname + location.search);
+              window.location.href = 'auth.html';
+            };
+          }
+        }, 500);
+  
       } catch (error) {
         console.error("Ошибка при загрузке услуги:", error);
         infoContainer.innerHTML = "<p class='text-danger'>Ошибка при загрузке данных.</p>";
       }
     });
   </script>
-
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

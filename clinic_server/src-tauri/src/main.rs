@@ -285,7 +285,7 @@ fn get_institution_by_id(id: i32) -> Result<Institution, String> {
 #[tauri::command]
 fn get_catalog_by_institution_id(
     institution_id: i32,
-) -> Result<Vec<(i32, String, String)>, String> {
+) -> Result<Vec<(i32, String, String, Option<String>)>, String> {
     match db::get_catalog_by_institution_id(institution_id) {
         Ok(catalog) => Ok(catalog),
         Err(e) => {
@@ -309,7 +309,7 @@ fn get_catalog_item_details(id: i32) -> Result<(i32, String, Option<String>, Opt
 #[tauri::command]
 fn edit_catalog_item(
     id: i32,
-    name: String,
+    name: Option<String>,
     description: Option<String>,
     image_url: Option<String>,
     available_dates: Option<String>,
@@ -317,7 +317,7 @@ fn edit_catalog_item(
 ) -> Result<bool, Option<String>> {
 	match db::edit_catalog_item(
 			id,
-			&name,
+			name.as_deref(),
 			description.as_deref(),
 			image_url.as_deref(),
 			available_dates.as_deref(),

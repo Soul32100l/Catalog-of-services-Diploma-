@@ -32,3 +32,91 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.innerHTML = "<p>Ошибка при загрузке данных.</p>";
   }
 });
+
+// Проверка статуса API и авторизации пользователя, управление кнопками в header
+async function updateHeaderAuthAndApiStatus() {
+  // Проверка API
+  const apiStatusEl = document.getElementById('api-status');
+  try {
+    const res = await fetch('http://127.0.0.1:3030/ping');
+    if (res.ok) {
+      apiStatusEl.textContent = 'API работает';
+      apiStatusEl.classList.remove('bg-danger');
+      apiStatusEl.classList.add('bg-success');
+    } else {
+      apiStatusEl.textContent = 'API недоступно';
+      apiStatusEl.classList.remove('bg-success');
+      apiStatusEl.classList.add('bg-danger');
+    }
+  } catch {
+    apiStatusEl.textContent = 'API недоступно';
+    apiStatusEl.classList.remove('bg-success');
+    apiStatusEl.classList.add('bg-danger');
+  }
+
+  // Проверка авторизации
+  const token = localStorage.getItem('token');
+  const loginBtn = document.getElementById('login-header-btn');
+  const logoutBtn = document.getElementById('logout-header-btn');
+  if (!loginBtn || !logoutBtn) return;
+  if (token) {
+    // Проверяем токен на сервере
+    try {
+      const res = await fetch('http://127.0.0.1:3030/check_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (data.success) {
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = '';
+        return;
+      }
+    } catch {}
+    localStorage.removeItem('token');
+  }
+  loginBtn.style.display = '';
+  logoutBtn.style.display = 'none';
+}
+
+// Обработчики кнопок в header
+function setupHeaderAuthButtons() {
+  const loginBtn = document.getElementById('login-header-btn');
+  const logoutBtn = document.getElementById('logout-header-btn');
+  if (loginBtn) {
+    loginBtn.onclick = () => {
+      localStorage.setItem('from_page', location.pathname.replace(/^.*[\\/]/, ''));
+      window.location.href = 'auth.html';
+    };
+  }
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await fetch('http://127.0.0.1:3030/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+          });
+        } catch {}
+        localStorage.removeItem('token');
+      }
+      updateHeaderAuthAndApiStatus();
+    };
+  }
+}
+
+// Ждём появления header и инициализируем
+function waitHeaderAndInit() {
+  const header = document.getElementById('header-container');
+  if (!header || !header.innerHTML) {
+    setTimeout(waitHeaderAndInit, 100);
+    return;
+  }
+  updateHeaderAuthAndApiStatus();
+  setupHeaderAuthButtons();
+}
+
+waitHeaderAndInit();

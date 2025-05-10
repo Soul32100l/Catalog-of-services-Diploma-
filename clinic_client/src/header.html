@@ -1,0 +1,21 @@
+<!-- Общая шапка сайта -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="index.html">Система управления</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Мед учреждения</a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <span class="api-status bg-success text-white px-2 rounded" id="api-status">⏳ Проверка статуса API...</span>
+        <button id="login-header-btn" class="btn btn-outline-light">Войти</button>
+        <button id="logout-header-btn" class="btn btn-danger" style="display:none;">Выйти</button>
+      </div>
+    </div>
+  </div>
+</nav>

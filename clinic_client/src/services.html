@@ -7,17 +7,25 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+  <div id="header-container"></div>
   <div class="container my-4">
     <h1 class="mb-4">Список услуг</h1>
     <div id="services-container" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"></div>
     <button class="btn btn-secondary mt-4" onclick="history.back()">← Назад</button>
   </div>
 
+  <script src="main.js"></script>
   <script>
+    // Вставка header
+    fetch('header.html').then(r => r.text()).then(html => {
+      document.getElementById('header-container').innerHTML = html;
+    });
+
     document.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get("id");
       const container = document.getElementById("services-container");
+      
 
       if (!id) {
         container.innerHTML = "<p class='text-danger'>ID учреждения не указан.</p>";
@@ -30,13 +38,14 @@
 
         if (Array.isArray(data) && data.length > 0) {
           data.forEach((service) => {
-            const [serviceId, name, imageUrl] = service;
+            const [serviceId, name, d, imageUrl] = service;
 
             const col = document.createElement("div");
+            const isValidImageUrl = typeof imageUrl === 'string' && imageUrl.trim().match(/^https?:\/\//i);
             col.className = "col";
             col.innerHTML = `
               <div class="card h-100 shadow-sm" style="cursor:pointer">
-                ${imageUrl ? `<img src="${imageUrl}" class="card-img-top" alt="${name}" style="max-height: 200px; object-fit: cover;">` : ""}
+                ${isValidImageUrl ? `<img src="${imageUrl}" class="card-img-top" alt="${name}" style="max-height: 200px; object-fit: cover;">` : ""}
                 <div class="card-body">
                   <h5 class="card-title">${name}</h5>
                 </div>

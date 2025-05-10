@@ -29,3 +29,4 @@ dotenvy = "0.15"  # для .env файла
 warp = "0.3"
 tokio = { version = "1", features = ["full"] }
 bcrypt = "0.12"
+uuid = "1.8"
